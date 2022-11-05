@@ -2,32 +2,61 @@ import './sass/styles.scss';
 import { refs } from './js/refs';
 import debounce from 'lodash.debounce';
 import { fetchCountries } from './js/fetchCountries';
+import {
+  manyCounrtisListMarkup,
+  oneCounrtyMarkup,
+  clearMarkup,
+} from './js/markupFuncs';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
 const DEBOUNCE_DELAY = 300;
 
 const { searchBoxEl, counrtyListEl, counrtyInfoEl } = refs;
 
-const manyCounrtisListMarkup = ({ name: { common: countryName }, flag }) => {
-  console.log(countryName + flag);
-};
-
-const oneCounrtyMarkup = ({
-  name: { common: countryName },
-  flag,
-  capital,
-  population,
-  languages,
-}) => {
-  console.log(countryName + flag);
+const parseResponse = res => {
+  return res.reduce((acc, country) => {
+    ({ altSpellings, ...rest } = country);
+    acc.push({
+      ...rest,
+      name: country.name.common,
+      flags: country.flags.svg,
+      languages: Object.values(country.languages).join(', '),
+    });
+    return acc;
+  }, []);
 };
 
 const onKeyDown = () => {
-  const country = searchBoxEl.value;
-  fetchCountries(country).then(countries =>
-    countries.forEach(element => {
-      counrtyListMarkup(element);
+  clearMarkup();
+  const inputFieldvalue = searchBoxEl.value.trim();
+  if (!inputFieldvalue) return;
+  fetchCountries(inputFieldvalue)
+    .then(parseResponse)
+    .then(countries => {
+      if (countries.length > 10) {
+        throw new Error(
+          JSON.stringify({
+            type: 'info',
+            message:
+              'Too many matches found. Please enter a more specific name.',
+          })
+        );
+      }
+      return countries;
     })
-  );
+    .then(countries => {
+      if (countries.length === 1) {
+        counrtyInfoEl.innerHTML = oneCounrtyMarkup(...countries);
+      } else {
+        counrtyListEl.innerHTML = manyCounrtisListMarkup(countries);
+      }
+    })
+    .catch(err => {
+      const { type, message } = JSON.parse(err.message);
+      Notify[type](message, {
+        fontSize: '16px',
+      });
+    });
 };
 
-searchBoxEl.addEventListener('keydown', debounce(onKeyDown, DEBOUNCE_DELAY));
+searchBoxEl.addEventListener('input', debounce(onKeyDown, DEBOUNCE_DELAY));
