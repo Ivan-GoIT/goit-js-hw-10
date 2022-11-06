@@ -17,7 +17,7 @@ const parseResponse = res => {
   return res.reduce((acc, country) => {
     delete country.altSpellings;
     acc.push({
-      ...rest,
+      ...country,
       name: country.name.common,
       flags: country.flags.svg,
       languages: Object.values(country.languages).join(', '),
