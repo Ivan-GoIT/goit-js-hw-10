@@ -52,6 +52,10 @@ const onKeyDown = () => {
       }
     })
     .catch(err => {
+      console.log(err);
+      console.log(err.message);
+      console.log(JSON.parse(err.message));
+      
       const { type, message } = JSON.parse(err.message);
       Notify[type](message, {
         fontSize: '16px',
