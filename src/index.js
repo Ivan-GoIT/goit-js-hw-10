@@ -15,7 +15,7 @@ const { searchBoxEl, counrtyListEl, counrtyInfoEl } = refs;
 
 const parseResponse = res => {
   return res.reduce((acc, country) => {
-    ({ altSpellings, ...rest } = country);
+    delete country.altSpellings;
     acc.push({
       ...rest,
       name: country.name.common,
@@ -46,7 +46,7 @@ const onKeyDown = () => {
     })
     .then(countries => {
       if (countries.length === 1) {
-        counrtyInfoEl.innerHTML = oneCounrtyMarkup(...countries);
+        counrtyInfoEl.innerHTML = oneCounrtyMarkup(countries[0]);
       } else {
         counrtyListEl.innerHTML = manyCounrtisListMarkup(countries);
       }
