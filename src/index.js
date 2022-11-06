@@ -52,7 +52,6 @@ const onKeyDown = () => {
       }
     })
     .catch(err => {
-      console.log(err);
       console.log(err.message);
       console.log(JSON.parse(err.message));
       
